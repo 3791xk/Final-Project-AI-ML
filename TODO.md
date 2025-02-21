@@ -20,3 +20,8 @@ This project addresses the challenge of training robust machine learning models 
 
 ### Generative Adversarial Network (GAN)  
 - **Current status**: No concrete plan yet. Need to explore approaches.  
+
+## Relevant Papers
+
+- [https://link.springer.com/content/pdf/10.1186/s12880-022-00793-7.pdf](https://link.springer.com/content/pdf/10.1186/s12880-022-00793-7.pdf)
+- [https://www.mdpi.com/2227-7080/11/2/40/pdf](https://www.mdpi.com/2227-7080/11/2/40/pdf)
