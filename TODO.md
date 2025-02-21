@@ -21,6 +21,22 @@ This project addresses the challenge of training robust machine learning models 
 ### Generative Adversarial Network (GAN)  
 - **Current status**: No concrete plan yet. Need to explore approaches.  
 
+## File Structure
+```
+ProjectRoot/
+├── models/
+│   ├── GAN_disc.py      # Discriminator for GAN
+│   ├── GAN_gen.py       # Generator for GAN
+│   ├── CNN.py           # Convolutional Neural Network
+│
+├── data/
+│   ├── data.py          # Data processing utilities
+│   ├── data_loaders.py  # Data loading functions
+│
+├── train.py             # Training script
+├── test.py              # Testing script
+├── main.py              # Main entry point
+```
 ## Relevant Papers
 
 - [https://link.springer.com/content/pdf/10.1186/s12880-022-00793-7.pdf](https://link.springer.com/content/pdf/10.1186/s12880-022-00793-7.pdf)
