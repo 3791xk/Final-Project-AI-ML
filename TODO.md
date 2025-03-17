@@ -25,19 +25,21 @@ This project addresses the challenge of training robust machine learning models 
 ```
 ProjectRoot/
 ├── models/
-│   ├── GAN_disc.py      # Discriminator for GAN
-│   ├── GAN_gen.py       # Generator for GAN
-│   ├── CNN.py           # Convolutional Neural Network
+│   ├── gan.py           # GAN model
+│   ├── cnn.py           # Convolutional Neural Network
 │
 ├── data/
 │   ├── data.py          # Data processing utilities
 │   ├── data_loaders.py  # Data loading functions
 │
-├── train.py             # Training script
-├── test.py              # Testing script
-├── main.py              # Main entry point
+├── trainers/
+│   ├── gan_trainer.py   # GAN training class
+│   ├── cnn_trainer.py   # CNN training class
+│
+├── main.py              # Main script to run the project
 ```
 ## Relevant Papers
 
 - [https://link.springer.com/content/pdf/10.1186/s12880-022-00793-7.pdf](https://link.springer.com/content/pdf/10.1186/s12880-022-00793-7.pdf)
 - [https://www.mdpi.com/2227-7080/11/2/40/pdf](https://www.mdpi.com/2227-7080/11/2/40/pdf)
+- [https://arxiv.org/abs/1904.01774](https://arxiv.org/abs/1904.01774)
