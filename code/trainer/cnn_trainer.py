@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from models.cnn import DeepCNN
 from data.data_loaders import create_dataloaders
+from data.imagenet_loader import create_imagenet_dataloaders
 
 class CNNTrainer:
     def __init__(self, data_dir, num_classes=10, batch_size=32, img_size=64, device=None):
@@ -16,7 +17,8 @@ class CNNTrainer:
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         # Load the data loaders to ensure that we use the same data
-        self.train_loader, self.val_loader, self.test_loader = create_dataloaders(self.data_dir, batch_size=self.batch_size, img_size=self.img_size)
+        #self.train_loader, self.val_loader, self.test_loader = create_dataloaders(self.data_dir, batch_size=self.batch_size, img_size=self.img_size)
+        self.train_loader, self.val_loader, self.test_loader = create_imagenet_dataloaders(base_data_dir=data_dir, batch_size=self.batch_size, img_size=self.img_size)
 
     def load_checkpoint(self, path):
         self.model.load_state_dict(torch.load(path, map_location=self.device))
