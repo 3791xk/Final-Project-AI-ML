@@ -135,4 +135,4 @@ def create_imagenet_dataloaders(base_data_dir, batch_size=32, img_size=224, test
 
     return train_loader, val_loader, test_loader
 
-train, val, test = create_imagenet_dataloaders(base_data_dir='code/ILSVRC')
+#train, val, test = create_imagenet_dataloaders(base_data_dir='code/ILSVRC')
