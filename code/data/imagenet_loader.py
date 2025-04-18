@@ -14,7 +14,7 @@ def load_wnid_map(map_file):
                 wnid_to_class[wnid] = (int(class_id), class_name)
     return wnid_to_class
 
-def build_samples(image_dir, annotation_dir, wnid_to_class):
+def build_samples_xml(image_dir, annotation_dir, wnid_to_class):
     samples = []
 
     for i, ann_file in enumerate(os.listdir(annotation_dir)):
@@ -45,8 +45,43 @@ def build_samples(image_dir, annotation_dir, wnid_to_class):
         except Exception as e:
             print(f"Error parsing {ann_file}: {e}")
 
-    print(f"Loaded {len(samples)} samples.")
+    print(f"Loaded {len(samples)} validation samples.")
     return samples
+
+def build_samples_file(imagesets_dir, image_root_dir, wnid_to_class):
+    samples = []
+
+    for i in range(1, 201):  # train_1.txt to train_200.txt
+        list_file = os.path.join(imagesets_dir, f'train_{i}.txt')
+        if not os.path.exists(list_file):
+            continue
+
+        class_id = i - 1  # Assuming zero-indexed classes
+        wnid = None
+
+        with open(list_file, 'r') as f:
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) != 2:
+                    continue
+                rel_path, label = parts
+                if label != '1':
+                    continue  # Only include positive samples
+
+                full_path = os.path.join(image_root_dir, rel_path + '.JPEG')
+                if not os.path.exists(full_path):
+                    #print(f"Missing image: {full_path}")  # Debug print
+                    continue
+
+                if wnid is None:
+                    wnid = rel_path.split('/')[1]  # e.g., 'n04591713'
+                class_name = wnid_to_class.get(wnid, (class_id, 'unknown'))[1]
+
+                samples.append((full_path, class_id, os.path.basename(rel_path), class_name))
+
+    print(f"Loaded {len(samples)} training samples.")
+    return samples
+
 
 class ImageNetDataset(Dataset):
     def __init__(self, samples, transform=None):
@@ -79,7 +114,8 @@ def create_imagenet_dataloaders(base_data_dir, batch_size=32, img_size=224, test
     # Load map and all training samples
     train_dir = os.path.join(base_data_dir, 'Data/DET', train_folder)
     train_ann_dir = os.path.join(base_data_dir, 'Annotations/DET', train_folder)
-    train_samples = build_samples(train_dir, train_ann_dir, wnid_to_class)
+    imagesets_dir = os.path.join(base_data_dir, 'ImageSets/DET')
+    train_samples = build_samples_file(imagesets_dir, train_dir, wnid_to_class)
 
     # Split training samples into train and test (e.g., 90/10)
     total = len(train_samples)
@@ -90,7 +126,7 @@ def create_imagenet_dataloaders(base_data_dir, batch_size=32, img_size=224, test
     # Build val dataset from val folder
     val_dir = os.path.join(base_data_dir, 'Data/DET', val_folder)
     val_ann_dir = os.path.join(base_data_dir, 'Annotations/DET', val_folder)
-    val_samples = build_samples(val_dir, val_ann_dir, wnid_to_class)
+    val_samples = build_samples_xml(val_dir, val_ann_dir, wnid_to_class)
 
     # Wrap all in Dataset + DataLoader
     train_loader = DataLoader(ImageNetDataset(train_dataset, transform=transform), batch_size=batch_size, shuffle=True)
@@ -98,3 +134,5 @@ def create_imagenet_dataloaders(base_data_dir, batch_size=32, img_size=224, test
     test_loader = DataLoader(ImageNetDataset(test_dataset, transform=transform), batch_size=batch_size, shuffle=False)
 
     return train_loader, val_loader, test_loader
+
+train, val, test = create_imagenet_dataloaders(base_data_dir='code/ILSVRC')
