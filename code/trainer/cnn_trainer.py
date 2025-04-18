@@ -30,7 +30,7 @@ class CNNTrainer:
     def train(self, num_epochs=25, mode='normal'):
         # Enable fine-tuning mode and freeze all layers except the final FC layer
         if mode == 'fine_tune':
-            self.model.activate_fine_tune()
+            self.model.activate_fine_tune(self.num_classes)
             self.update_optimizer()
         
         best_acc = 0.0
