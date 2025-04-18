@@ -49,15 +49,16 @@ def build_samples_xml(image_dir, annotation_dir, wnid_to_class):
     return samples
 
 def build_samples_file(imagesets_dir, image_root_dir, wnid_to_class):
-    samples = []
+    img_dict = {}  # image_path -> set of class_ids
+    img_info = {}  # image_path -> (basename, wnid)
 
     for i in range(1, 201):  # train_1.txt to train_200.txt
         list_file = os.path.join(imagesets_dir, f'train_{i}.txt')
         if not os.path.exists(list_file):
             continue
 
-        class_id = i - 1  # Assuming zero-indexed classes
-        wnid = None
+        class_id = i
+        count = 0
 
         with open(list_file, 'r') as f:
             for line in f:
@@ -70,15 +71,27 @@ def build_samples_file(imagesets_dir, image_root_dir, wnid_to_class):
 
                 full_path = os.path.join(image_root_dir, rel_path + '.JPEG')
                 if not os.path.exists(full_path):
-                    #print(f"Missing image: {full_path}")  # Debug print
                     continue
 
-                if wnid is None:
-                    wnid = rel_path.split('/')[1]  # e.g., 'n04591713'
-                class_name = wnid_to_class.get(wnid, (class_id, 'unknown'))[1]
+                if full_path not in img_dict:
+                    img_dict[full_path] = set()
+                img_dict[full_path].add(class_id)
+                count += 1
 
-                samples.append((full_path, class_id, os.path.basename(rel_path), class_name))
+                # Store basename and wnid for later use
+                if full_path not in img_info:
+                    wnid = rel_path.split('/')[1]
+                    img_info[full_path] = (os.path.basename(rel_path), wnid)
+        
+        print(f"Loaded {count} samples for class {i}")
 
+    # Now build final samples list
+    samples = []
+    for full_path, class_ids in img_dict.items():
+        basename, wnid = img_info[full_path]
+        class_names = [wnid_to_class.get(wnid, (cid, 'unknown'))[1] for cid in class_ids]
+        samples.append((full_path, sorted(list(class_ids)), basename, class_names))
+        
     print(f"Loaded {len(samples)} training samples.")
     return samples
 
@@ -135,4 +148,3 @@ def create_imagenet_dataloaders(base_data_dir, batch_size=32, img_size=224, test
 
     return train_loader, val_loader, test_loader
 
-#train, val, test = create_imagenet_dataloaders(base_data_dir='code/ILSVRC')
