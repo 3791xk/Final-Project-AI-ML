@@ -16,7 +16,7 @@ class CNNTrainer:
         self.model = nn.DataParallel(self.model)
         # Set the loss function and optimizer
         self.criterion = nn.BCEWithLogitsLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001, weight_decay=1e-4)
         
         # Data loaders
         print(f"Loading data from {data_dir}...", flush=True)
@@ -29,7 +29,7 @@ class CNNTrainer:
 
     def update_optimizer(self):
         trainable_params = filter(lambda p: p.requires_grad, self.model.parameters())
-        self.optimizer = optim.Adam(trainable_params, lr=0.001)
+        self.optimizer = optim.Adam(trainable_params, lr=0.001, weight_decay=1e-4)
 
     def train(self, num_epochs=25, mode='normal'):
         print(f"Training in {mode} mode...", flush=True)
