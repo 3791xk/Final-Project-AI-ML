@@ -4,6 +4,7 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms
 import numpy as np
+import random
 
 def load_wnid_map(map_file):
     wnid_to_class = {}
@@ -196,6 +197,88 @@ def create_imagenet_dataloaders(base_data_dir, batch_size=32, img_size=244, test
     # val_dir = os.path.join(base_data_dir, 'Data/DET', val_folder)
     # val_ann_dir = os.path.join(base_data_dir, 'Annotations/DET', val_folder)
     # val_samples = build_samples_xml(val_dir, val_ann_dir, wnid_to_class)
+
+    # Wrap all in Dataset + DataLoader
+    train_loader = DataLoader(ImageNetDataset(train_ds, transform=train_transform), batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
+    val_loader = DataLoader(ImageNetDataset(val_ds, transform=eval_transform), batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    test_loader = DataLoader(ImageNetDataset(test_ds, transform=eval_transform), batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+
+    return train_loader, val_loader, test_loader
+
+def create_dogs_dataset(root_dir, transform=None, batch_size=32, shuffle=True, percent_used=1.0):
+    samples = []
+    root_dir = os.path.join(root_dir, 'images/Images')
+    class_folders = sorted(os.listdir(root_dir))
+
+    class_to_idx = {folder: idx for idx, folder in enumerate(class_folders)}
+
+    for folder in class_folders:
+        class_path = os.path.join(root_dir, folder)
+        if not os.path.isdir(class_path):
+            continue
+
+        folder_name = folder.split('-')
+        if len(folder_name) < 2:
+            print("bad folder name", folder)
+            continue
+
+        class_id = folder_name[0]
+        class_name = folder_name[1]
+        label_idx = class_to_idx[folder]
+        label_one_hot = np.eye(len(class_folders))[label_idx]
+
+        # Collect all valid sample paths for this class
+        class_samples = []
+        for fname in os.listdir(class_path):
+            if fname.endswith('.jpg') and fname.startswith(class_id):
+                img_path = os.path.join(class_path, fname)
+                class_samples.append((img_path, label_one_hot, fname, class_name))
+
+        # apply percent_used
+        # when we dont want to use all of the sample for fine tuning, we only use a percent
+        if percent_used < 1.0:
+            k = int(len(class_samples) * percent_used)
+            class_samples = random.sample(class_samples, k)
+
+        samples.extend(class_samples)
+
+    print(f"Loaded {len(samples)} dog samples (percent_used={percent_used*100}%)")
+    return samples
+
+def create_dogs_loader(base_data_dir, batch_size=32, img_size=244, test_split=0.1, val_split=0.1, percent_used=1):
+    train_transform = transforms.Compose([
+        transforms.RandomResizedCrop(img_size, scale=(0.08, 1.0)),
+        transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225]
+        ),
+    ])
+
+    eval_transform = transforms.Compose([
+        transforms.Resize(int(img_size * 1.14)),
+        transforms.CenterCrop(img_size),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225]
+        ),
+    ])
+
+    samples = create_dogs_dataset(base_data_dir, transform=train_transform, batch_size=batch_size, percent_used=percent_used)
+    print(samples[0])
+
+    # Split training samples into train, val, and test sets
+    total     = len(samples)
+    val_size  = int(val_split  * total)
+    test_size = int(test_split * total)
+    train_size = total - val_size - test_size
+    train_ds, val_ds, test_ds = random_split(
+        samples,
+        [train_size, val_size, test_size]
+    )
 
     # Wrap all in Dataset + DataLoader
     train_loader = DataLoader(ImageNetDataset(train_ds, transform=train_transform), batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
