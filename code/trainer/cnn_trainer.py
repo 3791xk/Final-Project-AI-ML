@@ -4,6 +4,7 @@ import torch.optim as optim
 from models.cnn import DeepCNN
 from data.imagenet_loader import create_imagenet_dataloaders
 from datetime import datetime
+import numpy as np
 
 class CNNTrainer:
     def __init__(self, data_dir, num_classes=10, batch_size=32, img_size=64, device=None):
@@ -14,14 +15,27 @@ class CNNTrainer:
         self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = DeepCNN(num_classes=self.num_classes).to(self.device)
         self.model = nn.DataParallel(self.model)
-        # Set the loss function and optimizer
-        self.criterion = nn.BCEWithLogitsLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001, weight_decay=1e-4)
         
         # Data loaders
         print(f"Loading data from {data_dir}...", flush=True)
         self.train_loader, self.val_loader, self.test_loader = create_imagenet_dataloaders(base_data_dir=data_dir, batch_size=self.batch_size, img_size=self.img_size)
         print("Data loaded successfully.", flush=True)
+        
+        # compute pos_weight per class from the train split
+        subset = self.train_loader.dataset.samples
+        all_samps = subset.dataset
+        idxs = subset.indices
+
+        labels_np = np.stack([all_samps[i][1] for i in idxs], axis=0)  # shape [N, C]
+        pos = labels_np.sum(axis=0)
+        neg = labels_np.shape[0] - pos
+        pos_weight = (neg / (pos + 1e-6)).astype(np.float32)
+
+        pos_weight_tensor = torch.from_numpy(pos_weight).to(self.device)
+        
+        # Set the loss function and optimizer
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001, weight_decay=1e-4)
+        self.criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
 
     def load_checkpoint(self, path):
         self.model.load_state_dict(torch.load(path, map_location=self.device))
@@ -32,7 +46,7 @@ class CNNTrainer:
         self.optimizer = optim.Adam(trainable_params, lr=0.001, weight_decay=1e-4)
 
     def train(self, num_epochs=25, mode='normal'):
-        print(f"Training in {mode} mode...", flush=True)
+        print(f"Training in {mode} mode, with {len(self.train_loader.dataset)} datapoints", flush=True)
         if mode == 'fine_tune':
             self.model.activate_fine_tune(self.num_classes)
             self.update_optimizer()
@@ -44,65 +58,60 @@ class CNNTrainer:
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Epoch {epoch+1}/{num_epochs}", flush=True)
             print('-' * 10)
             for phase in ['train', 'val']:
-                if phase == 'train':
-                    self.model.train()
-                    loader = self.train_loader
-                else:
-                    self.model.eval()
-                    loader = self.val_loader
+                self.model.train() if phase=='train' else self.model.eval()
+                loader = self.train_loader if phase=='train' else self.val_loader
 
                 running_loss = 0.0
-                running_correct_bits = 0
-                running_total_bits = 0
+                running_sample_acc = 0.0
 
                 for inputs, labels in loader:
                     inputs, labels = inputs.to(self.device), labels.to(self.device)
 
-                    self.optimizer.zero_grad()
-                    with torch.set_grad_enabled(phase == 'train'):
-                        logits = self.model(inputs)
-                        loss = self.criterion(logits, labels)
-                        if phase == 'train':
-                            loss.backward()
-                            self.optimizer.step()
+                    if phase == 'train':
+                        self.optimizer.zero_grad()
+
+                    logits = self.model(inputs)
+                    loss = self.criterion(logits, labels)
+                    if phase == 'train':
+                        loss.backward()
+                        self.optimizer.step()
 
                     running_loss += loss.item() * inputs.size(0)
 
-                    # Multi-label predictions and accuracy (Hamming)
+                    # per‑sample accuracy
                     probs = torch.sigmoid(logits)
                     preds = (probs > 0.5).float()
-                    running_correct_bits += (preds == labels).sum().item()
-                    running_total_bits += labels.numel()
+                    # for each sample: fraction of bits correct, then sum
+                    sample_acc_batch = (preds.eq(labels).float().mean(dim=1)).sum().item()
+                    running_sample_acc += sample_acc_batch
 
                 epoch_loss = running_loss / len(loader.dataset)
-                epoch_acc = running_correct_bits / running_total_bits
-                print(f'{phase} Loss: {epoch_loss:.4f} Hamming Acc: {epoch_acc:.4f}')
+                epoch_acc  = running_sample_acc / len(loader.dataset)
+                print(f'{phase} Loss: {epoch_loss:.4f} Sample-Acc: {epoch_acc:.4f}')
 
-                if phase == 'val' and epoch_acc > best_acc:
+                if phase=='val' and epoch_acc > best_acc:
                     best_acc = epoch_acc
                     best_model_wts = self.model.state_dict()
+
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Finished epoch {epoch+1}", flush=True)
 
         self.model.load_state_dict(best_model_wts)
-        print(f'Best val Hamming Acc: {best_acc:.4f}', flush=True)
+        print(f'Best val Sample-Acc: {best_acc:.4f}', flush=True)
+
 
     def test(self):
         self.model.eval()
-        running_correct_bits = 0
-        running_total_bits = 0
+        running_sample_acc = 0.0
         with torch.no_grad():
             for inputs, labels in self.test_loader:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 logits = self.model(inputs)
-
                 probs = torch.sigmoid(logits)
                 preds = (probs > 0.5).float()
+                running_sample_acc += (preds.eq(labels).float().mean(dim=1)).sum().item()
 
-                running_correct_bits += (preds == labels).sum().item()
-                running_total_bits += labels.numel()
-
-        test_acc = running_correct_bits / running_total_bits
-        print(f'Test Hamming Acc: {test_acc:.4f}', flush=True)
+        test_acc = running_sample_acc / len(self.test_loader.dataset)
+        print(f'Test Sample‑Acc: {test_acc:.4f}', flush=True)
 
     def save(self, path):
         torch.save(self.model.state_dict(), path)
