@@ -17,9 +17,9 @@ def main():
     parser.add_argument('--input_model_D', type=str, default=None, help='Path to GAN discriminator checkpoint (required for fine tuning)')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
     args = parser.parse_args()
+    print(f"Starting program with arguments: {args}", flush=True)
     # Set random seed for reproducibility
     random.seed(args.seed)
-    
     trainer = None
     if args.model == 'cnn':
         from trainer.cnn_trainer import CNNTrainer

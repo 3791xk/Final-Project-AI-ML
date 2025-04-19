@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms
+import numpy as np
 
 def load_wnid_map(map_file):
     wnid_to_class = {}
@@ -52,7 +53,15 @@ def build_samples_file(imagesets_dir, image_root_dir, wnid_to_class):
     img_dict = {}  # image_path -> set of class_ids
     img_info = {}  # image_path -> (basename, wnid)
 
-    for i in range(1, 201):  # train_1.txt to train_200.txt
+    # Determine the number of classes from the map
+    if not wnid_to_class:
+        raise ValueError("wnid_to_class map is empty.")
+    num_classes = max(cid for cid, _ in wnid_to_class.values()) if wnid_to_class else 0
+    if num_classes <= 0:
+        print("Warning: Could not determine number of classes from wnid_to_class map. Assuming 200 based on loop range.")
+        num_classes = 200 
+
+    for i in range(1, num_classes + 1):  # Iterate based on determined number of classes
         list_file = os.path.join(imagesets_dir, f'train_{i}.txt')
         if not os.path.exists(list_file):
             continue
@@ -90,7 +99,16 @@ def build_samples_file(imagesets_dir, image_root_dir, wnid_to_class):
     for full_path, class_ids in img_dict.items():
         basename, wnid = img_info[full_path]
         class_names = [wnid_to_class.get(wnid, (cid, 'unknown'))[1] for cid in class_ids]
-        samples.append((full_path, sorted(list(class_ids)), basename, class_names))
+        
+        # Create one-hot encoded label
+        one_hot_label = np.zeros(num_classes, dtype=np.float32)
+        for cid in class_ids:
+            if 1 <= cid <= num_classes:
+                one_hot_label[cid - 1] = 1.0  # Adjust for 0-based indexing
+            else:
+                print(f"Warning: Class ID {cid} out of range [1, {num_classes}] for image {basename}")
+
+        samples.append((full_path, one_hot_label, basename, class_names))
         
     print(f"Loaded {len(samples)} training samples.")
     return samples
@@ -105,15 +123,19 @@ class ImageNetDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, idx):
-        img_path, label, filename, class_name = self.samples[idx]
-        image = Image.open(img_path).convert('RGB')
+        img_path, label, filename, class_name = self.samples[idx]  # label is now one-hot numpy array
+        image = Image.open(img_path)
+        # Ensure image has the correct shape
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
         
         if self.transform:
             image = self.transform(image)
-        return image, label
+        
+        return image, label  # label is the one-hot encoded numpy array
         
 
-def create_imagenet_dataloaders(base_data_dir, batch_size=32, img_size=224, test_split=0.1):
+def create_imagenet_dataloaders(base_data_dir, batch_size=32, img_size=244, test_split=0.1):
     transform = transforms.Compose([
         transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
@@ -142,9 +164,9 @@ def create_imagenet_dataloaders(base_data_dir, batch_size=32, img_size=224, test
     val_samples = build_samples_xml(val_dir, val_ann_dir, wnid_to_class)
 
     # Wrap all in Dataset + DataLoader
-    train_loader = DataLoader(ImageNetDataset(train_dataset, transform=transform), batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(ImageNetDataset(val_samples, transform=transform), batch_size=batch_size, shuffle=False)
-    test_loader = DataLoader(ImageNetDataset(test_dataset, transform=transform), batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(ImageNetDataset(train_dataset, transform=transform), batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
+    val_loader = DataLoader(ImageNetDataset(val_samples, transform=transform), batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    test_loader = DataLoader(ImageNetDataset(test_dataset, transform=transform), batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
 
     return train_loader, val_loader, test_loader
 
