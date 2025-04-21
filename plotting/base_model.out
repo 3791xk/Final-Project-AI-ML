@@ -51,3 +51,30 @@ train Loss: 1.0344 Sample-Acc: 0.6765
 val Loss: 0.9779 Sample-Acc: 0.7430
 [2025-04-19 21:27:28] Finished epoch 10
 ----------
+
+
+[2025-04-20 14:26:49] Epoch 11/15
+train Loss: 0.9762 Sample-Acc: 0.7071
+val Loss: 0.8648 Sample-Acc: 0.7561
+[2025-04-20 15:27:06] Finished epoch 11
+----------
+[2025-04-20 15:27:06] Epoch 12/15
+train Loss: 0.9666 Sample-Acc: 0.7084
+val Loss: 0.8738 Sample-Acc: 0.7559
+[2025-04-20 16:11:43] Finished epoch 12
+----------
+[2025-04-20 16:11:43] Epoch 13/15
+train Loss: 0.9569 Sample-Acc: 0.7141
+val Loss: 0.8425 Sample-Acc: 0.7558
+[2025-04-20 16:55:15] Finished epoch 13
+----------
+[2025-04-20 16:55:15] Epoch 14/15
+train Loss: 0.9526 Sample-Acc: 0.7152
+val Loss: 0.8829 Sample-Acc: 0.7920
+[2025-04-20 17:39:30] Finished epoch 14
+----------
+[2025-04-20 17:39:30] Epoch 15/5
+train Loss: 0.9477 Sample-Acc: 0.7176
+val Loss: 0.8237 Sample-Acc: 0.7433
+[2025-04-20 18:23:47] Finished epoch 15
+----------

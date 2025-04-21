@@ -5,6 +5,7 @@ from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms
 import numpy as np
 import random
+import torch
 
 def load_wnid_map(map_file):
     wnid_to_class = {}
@@ -18,7 +19,7 @@ def load_wnid_map(map_file):
 
 def build_samples_xml(image_dir, annotation_dir, wnid_to_class):
     """
-    Parse Pascal‑style XML annotations, map each image to a one-hot label vector,
+    Parse Pascal-style XML annotations, map each image to a one-hot label vector,
     and return a list of (image_path, one_hot_label, filename, class_name).
     """
     if not wnid_to_class:
@@ -205,7 +206,7 @@ def create_imagenet_dataloaders(base_data_dir, batch_size=32, img_size=244, test
 
     return train_loader, val_loader, test_loader
 
-def create_dogs_dataset(root_dir, transform=None, batch_size=32, shuffle=True, percent_used=1.0):
+def create_dogs_dataset(root_dir): # Removed percent_used
     samples = []
     root_dir = os.path.join(root_dir, 'images/Images')
     class_folders = sorted(os.listdir(root_dir))
@@ -234,56 +235,77 @@ def create_dogs_dataset(root_dir, transform=None, batch_size=32, shuffle=True, p
                 img_path = os.path.join(class_path, fname)
                 class_samples.append((img_path, label_one_hot, fname, class_name))
 
-        # apply percent_used
-        # when we dont want to use all of the sample for fine tuning, we only use a percent
-        if percent_used < 1.0:
-            k = int(len(class_samples) * percent_used)
-            class_samples = random.sample(class_samples, k)
 
         samples.extend(class_samples)
 
-    print(f"Loaded {len(samples)} dog samples (percent_used={percent_used*100}%)")
+    print(f"Loaded {len(samples)} total dog samples.") # Updated print statement
     return samples
 
-def create_dogs_loader(base_data_dir, batch_size=32, img_size=244, test_split=0.1, val_split=0.1, percent_used=1):
+def create_dogs_loader(base_data_dir, batch_size=32, img_size=244, test_split=0.1, val_split=0.1, percent_used=1.0):
     train_transform = transforms.Compose([
         transforms.RandomResizedCrop(img_size, scale=(0.08, 1.0)),
         transforms.RandomHorizontalFlip(),
         transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
         transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225]
-        ),
     ])
 
     eval_transform = transforms.Compose([
         transforms.Resize(int(img_size * 1.14)),
         transforms.CenterCrop(img_size),
         transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225]
-        ),
     ])
 
-    samples = create_dogs_dataset(base_data_dir, transform=train_transform, batch_size=batch_size, percent_used=percent_used)
-    print(samples[0])
+    # Load all samples first
+    all_samples = create_dogs_dataset(base_data_dir)
 
-    # Split training samples into train, val, and test sets
-    total     = len(samples)
-    val_size  = int(val_split  * total)
+    # Split ALL samples into train, val, and test sets
+    total = len(all_samples)
+        
+    val_size = int(val_split * total)
     test_size = int(test_split * total)
     train_size = total - val_size - test_size
-    train_ds, val_ds, test_ds = random_split(
-        samples,
-        [train_size, val_size, test_size]
+    # Use a fixed generator for reproducibility of splits
+    generator = torch.Generator().manual_seed(42) 
+    full_dataset = ImageNetDataset(all_samples)
+    train_indices, val_indices, test_indices = random_split(
+        range(total),
+        [train_size, val_size, test_size],
+        generator=generator
     )
 
+    train_samples_subset = [all_samples[i] for i in train_indices]
+
+    if percent_used < 1.0:
+        class_groups = {}
+        
+        for sample in train_samples_subset:
+            label_one_hot = sample[1]
+            class_idx = np.argmax(label_one_hot)
+            if class_idx not in class_groups:
+                class_groups[class_idx] = []
+            class_groups[class_idx].append(sample)
+
+        reduced_train_samples = []
+        for class_idx, group in class_groups.items():
+            num_to_keep = max(1, int(len(group) * percent_used))
+            reduced_train_samples.extend(random.sample(group, num_to_keep))
+        
+        random.shuffle(reduced_train_samples)
+        train_samples_final = reduced_train_samples
+        print(f"Reduced training set size: {len(train_samples_final)}")
+    else:
+        train_samples_final = train_samples_subset
+
+    # Create final datasets using the selected samples/indices
+    train_dataset = ImageNetDataset(train_samples_final, transform=train_transform)
+    val_dataset = ImageNetDataset([all_samples[i] for i in val_indices], transform=eval_transform)
+    test_dataset = ImageNetDataset([all_samples[i] for i in test_indices], transform=eval_transform)
+
+
     # Wrap all in Dataset + DataLoader
-    train_loader = DataLoader(ImageNetDataset(train_ds, transform=train_transform), batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
-    val_loader = DataLoader(ImageNetDataset(val_ds, transform=eval_transform), batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-    test_loader = DataLoader(ImageNetDataset(test_ds, transform=eval_transform), batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
 
     return train_loader, val_loader, test_loader
 

@@ -12,6 +12,7 @@ def main():
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
     parser.add_argument('--num_classes', type=int, default=10, help='Number of classes (for cnn)')
     parser.add_argument('--img_size', type=int, default=64, help='Image size')
+    parser.add_argument('--percentage', type=float, default=1.0, help='Percentage of data to use')
     parser.add_argument('--input_model', type=str, default=None, help='Path to input model checkpoint for CNN (required for fine tuning)')
     parser.add_argument('--input_model_G', type=str, default=None, help='Path to GAN generator checkpoint (required for fine tuning)')
     parser.add_argument('--input_model_D', type=str, default=None, help='Path to GAN discriminator checkpoint (required for fine tuning)')
@@ -23,7 +24,7 @@ def main():
     trainer = None
     if args.model == 'cnn':
         from trainer.cnn_trainer import CNNTrainer
-        trainer = CNNTrainer(data_dir=args.data_dir, num_classes=args.num_classes, batch_size=args.batch_size, img_size=args.img_size)
+        trainer = CNNTrainer(data_dir=args.data_dir, num_classes=args.num_classes, batch_size=args.batch_size, img_size=args.img_size, percentage=args.percentage)
     elif args.model == 'gan':
         from trainer.gan_trainer import GANTrainer
         trainer = GANTrainer(data_dir=args.data_dir, batch_size=args.batch_size, image_size=args.img_size)
@@ -43,6 +44,7 @@ def main():
                     trainer.load_checkpoint(args.input_model)
             else:
                 if args.input_model is not None:
+                    print("Loading prior model...")
                     trainer.load_checkpoint(args.input_model)
         elif args.model == 'gan':
             if args.train_mode == 'fine_tune':
@@ -59,7 +61,7 @@ def main():
         # Also test the model after training to ensure that it is generalizing well
         trainer.test()
         # Save the model
-        if args.model == 'cnn':
+        if args.model == 'cnn' and args.train_mode == 'normal':
             trainer.save('cnn_model.pth')
         else:
             trainer.save('gan_generator.pth', 'gan_discriminator.pth')
