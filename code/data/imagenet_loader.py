@@ -309,3 +309,97 @@ def create_dogs_loader(base_data_dir, batch_size=32, img_size=244, test_split=0.
 
     return train_loader, val_loader, test_loader
 
+def create_food_loader(base_data_dir, batch_size=32, img_size=512, num_used=3030, seed=42):
+    num_classes = 101
+    num_to_keep = int((num_used/num_classes))
+
+    image_folder = os.path.join(base_data_dir, 'images')
+    meta_folder = os.path.join(base_data_dir, 'meta/meta')
+    map_file = os.path.join(meta_folder, "class_num_map.txt")
+    train_file = os.path.join(meta_folder, "train.txt")
+    test_file = os.path.join(meta_folder, "test.txt")
+
+    # get a function to map classes to numbers and names
+    with open(map_file, 'r') as f:
+        class_to_idx = {
+            line.strip().split()[0]: int(line.strip().split()[1])
+            for line in f
+        }
+
+    num_classes = len(class_to_idx)
+
+    # load samples from txt file with paths
+    def get_samples(file):
+        samples = []
+        with open(test_file, 'r') as f:
+            for line in f:
+                relative_path = line.strip()
+                class_name, filename = relative_path.split('/')
+                class_index = class_to_idx[class_name]
+                one_hot_label = np.zeros(num_classes, dtype=np.float32)
+                one_hot_label[class_index] = 1.0
+
+                full_img_path = os.path.join(image_folder, relative_path + '.jpg')
+                samples.append((full_img_path, one_hot_label, filename, class_name))
+        return samples
+    
+    train_samples = get_samples(train_file)
+    test_samples = get_samples(test_file)
+
+    # cut test in half for train and val
+    test_total = len(test_samples)
+    half = test_total // 2
+    generator = torch.Generator().manual_seed(89)
+    val_indices, test_indices = random_split(
+        range(test_total),
+        [half, half],
+        generator=generator
+    )
+
+    # cut train into however few samples we want
+    if num_to_keep < 10100:
+        class_groups = {}
+
+        for sample in train_samples:
+            label_one_hot = sample[1]
+            class_idx = np.argmax(label_one_hot)
+            if class_idx not in class_groups:
+                class_groups[class_idx] = []
+            class_groups[class_idx].append(sample)
+
+        reduced_train_samples = []
+        for class_idx, group in class_groups.items():
+            reduced_train_samples.extend(random.sample(group, num_to_keep))
+
+        random.shuffle(reduced_train_samples)
+        train_samples_final = reduced_train_samples
+        print(f"Reduced training set size: {len(train_samples_final)}")
+    else:
+        train_samples_final = train_samples
+
+    # same old
+    train_transform = transforms.Compose([
+        transforms.RandomResizedCrop(img_size, scale=(0.08, 1.0)),
+        transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
+        transforms.ToTensor()
+    ])
+
+    eval_transform = transforms.Compose([
+        transforms.Resize(int(img_size * 1.14)),
+        transforms.CenterCrop(img_size),
+        transforms.ToTensor()
+    ])
+
+
+    train_dataset = ImageNetDataset(train_samples, transform=train_transform)
+    val_dataset = ImageNetDataset([test_samples[i] for i in val_indices], transform=eval_transform)
+    test_dataset = ImageNetDataset([test_samples[i] for i in test_indices], transform=eval_transform)
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+
+    return train_loader, val_loader, test_loader
+
+create_food_loader(r"C:\Users\khusix\Downloads\archive (1)")
