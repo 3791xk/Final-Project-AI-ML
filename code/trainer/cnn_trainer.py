@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from models.cnn import DeepCNN
-from data.imagenet_loader import create_imagenet_dataloaders, create_dogs_loader
+from data.imagenet_loader import create_imagenet_dataloaders, create_dogs_loader, create_food_loader
 from datetime import datetime
 import numpy as np
 
@@ -19,9 +19,9 @@ class CNNTrainer:
         
         # Data loaders
         print(f"Loading data from {data_dir}...", flush=True)
-        self.train_loader, self.val_loader, self.test_loader = create_dogs_loader(
+        self.train_loader, self.val_loader, self.test_loader = create_food_loader(
             base_data_dir=data_dir, batch_size=self.batch_size, 
-            img_size=self.img_size, percent_used=percentage)
+            img_size=self.img_size, num_used=percentage)
         print("Data loaded successfully.", flush=True)
         
         # compute pos_weight per class from the train split

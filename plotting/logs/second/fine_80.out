@@ -1,0 +1,263 @@
+[18:25:44] Loading modules
+[18:25:44] Activating conda env
+[18:25:46] Starting training script
+Starting program with arguments: Namespace(model='cnn', mode='train', train_mode='fine_tune', data_dir='dogs', epochs=50, batch_size=200, num_classes=121, img_size=256, percentage=0.8, input_model='cnn_model.pth', input_model_G=None, input_model_D=None, seed=103)
+Loading data from dogs...
+Loaded 20580 total dog samples.
+Reduced training set size: 13127
+Data loaded successfully.
+Loaded CNN model from cnn_model.pth
+Training in fine_tune mode, with 13127 datapoints
+[2025-04-21 18:25:59] Epoch 1/50
+train Loss: 1.3726 Sample-Acc: 0.5196
+val Loss: 1.3639 Sample-Acc: 0.6234
+[2025-04-21 18:28:00] Finished epoch 1
+----------
+[2025-04-21 18:28:00] Epoch 2/50
+train Loss: 1.3540 Sample-Acc: 0.6015
+val Loss: 1.3253 Sample-Acc: 0.6347
+[2025-04-21 18:29:56] Finished epoch 2
+----------
+[2025-04-21 18:29:56] Epoch 3/50
+train Loss: 1.3250 Sample-Acc: 0.6159
+val Loss: 1.2793 Sample-Acc: 0.6191
+[2025-04-21 18:31:53] Finished epoch 3
+----------
+[2025-04-21 18:31:53] Epoch 4/50
+train Loss: 1.2999 Sample-Acc: 0.6086
+val Loss: 1.2459 Sample-Acc: 0.6183
+[2025-04-21 18:33:49] Finished epoch 4
+----------
+[2025-04-21 18:33:49] Epoch 5/50
+train Loss: 1.2819 Sample-Acc: 0.6094
+val Loss: 1.2245 Sample-Acc: 0.6182
+[2025-04-21 18:35:46] Finished epoch 5
+----------
+[2025-04-21 18:35:46] Epoch 6/50
+train Loss: 1.2700 Sample-Acc: 0.6161
+val Loss: 1.2098 Sample-Acc: 0.6325
+[2025-04-21 18:37:42] Finished epoch 6
+----------
+[2025-04-21 18:37:42] Epoch 7/50
+train Loss: 1.2598 Sample-Acc: 0.6213
+val Loss: 1.2012 Sample-Acc: 0.6280
+[2025-04-21 18:39:39] Finished epoch 7
+----------
+[2025-04-21 18:39:39] Epoch 8/50
+train Loss: 1.2551 Sample-Acc: 0.6227
+val Loss: 1.1923 Sample-Acc: 0.6280
+[2025-04-21 18:41:36] Finished epoch 8
+----------
+[2025-04-21 18:41:36] Epoch 9/50
+train Loss: 1.2468 Sample-Acc: 0.6285
+val Loss: 1.1833 Sample-Acc: 0.6403
+[2025-04-21 18:43:32] Finished epoch 9
+----------
+[2025-04-21 18:43:32] Epoch 10/50
+train Loss: 1.2453 Sample-Acc: 0.6289
+val Loss: 1.1768 Sample-Acc: 0.6453
+[2025-04-21 18:45:29] Finished epoch 10
+----------
+[2025-04-21 18:45:29] Epoch 11/50
+train Loss: 1.2382 Sample-Acc: 0.6310
+val Loss: 1.1677 Sample-Acc: 0.6436
+[2025-04-21 18:47:25] Finished epoch 11
+----------
+[2025-04-21 18:47:25] Epoch 12/50
+train Loss: 1.2341 Sample-Acc: 0.6357
+val Loss: 1.1684 Sample-Acc: 0.6429
+[2025-04-21 18:49:22] Finished epoch 12
+----------
+[2025-04-21 18:49:22] Epoch 13/50
+train Loss: 1.2317 Sample-Acc: 0.6352
+val Loss: 1.1625 Sample-Acc: 0.6504
+[2025-04-21 18:51:18] Finished epoch 13
+----------
+[2025-04-21 18:51:18] Epoch 14/50
+train Loss: 1.2308 Sample-Acc: 0.6396
+val Loss: 1.1606 Sample-Acc: 0.6533
+[2025-04-21 18:53:15] Finished epoch 14
+----------
+[2025-04-21 18:53:15] Epoch 15/50
+train Loss: 1.2295 Sample-Acc: 0.6369
+val Loss: 1.1604 Sample-Acc: 0.6440
+[2025-04-21 18:55:11] Finished epoch 15
+----------
+[2025-04-21 18:55:11] Epoch 16/50
+train Loss: 1.2262 Sample-Acc: 0.6383
+val Loss: 1.1559 Sample-Acc: 0.6578
+[2025-04-21 18:57:08] Finished epoch 16
+----------
+[2025-04-21 18:57:08] Epoch 17/50
+train Loss: 1.2244 Sample-Acc: 0.6392
+val Loss: 1.1541 Sample-Acc: 0.6583
+[2025-04-21 18:59:04] Finished epoch 17
+----------
+[2025-04-21 18:59:04] Epoch 18/50
+train Loss: 1.2186 Sample-Acc: 0.6451
+val Loss: 1.1477 Sample-Acc: 0.6561
+[2025-04-21 19:01:01] Finished epoch 18
+----------
+[2025-04-21 19:01:01] Epoch 19/50
+train Loss: 1.2175 Sample-Acc: 0.6422
+val Loss: 1.1464 Sample-Acc: 0.6575
+[2025-04-21 19:02:57] Finished epoch 19
+----------
+[2025-04-21 19:02:57] Epoch 20/50
+train Loss: 1.2169 Sample-Acc: 0.6434
+val Loss: 1.1460 Sample-Acc: 0.6566
+[2025-04-21 19:04:53] Finished epoch 20
+----------
+[2025-04-21 19:04:53] Epoch 21/50
+train Loss: 1.2157 Sample-Acc: 0.6418
+val Loss: 1.1445 Sample-Acc: 0.6585
+[2025-04-21 19:06:49] Finished epoch 21
+----------
+[2025-04-21 19:06:49] Epoch 22/50
+train Loss: 1.2128 Sample-Acc: 0.6445
+val Loss: 1.1412 Sample-Acc: 0.6635
+[2025-04-21 19:08:45] Finished epoch 22
+----------
+[2025-04-21 19:08:45] Epoch 23/50
+train Loss: 1.2121 Sample-Acc: 0.6449
+val Loss: 1.1388 Sample-Acc: 0.6612
+[2025-04-21 19:10:43] Finished epoch 23
+----------
+[2025-04-21 19:10:43] Epoch 24/50
+train Loss: 1.2126 Sample-Acc: 0.6478
+val Loss: 1.1364 Sample-Acc: 0.6595
+[2025-04-21 19:12:40] Finished epoch 24
+----------
+[2025-04-21 19:12:40] Epoch 25/50
+train Loss: 1.2132 Sample-Acc: 0.6457
+val Loss: 1.1342 Sample-Acc: 0.6628
+[2025-04-21 19:14:37] Finished epoch 25
+----------
+[2025-04-21 19:14:37] Epoch 26/50
+train Loss: 1.2094 Sample-Acc: 0.6497
+val Loss: 1.1363 Sample-Acc: 0.6591
+[2025-04-21 19:16:33] Finished epoch 26
+----------
+[2025-04-21 19:16:33] Epoch 27/50
+train Loss: 1.2110 Sample-Acc: 0.6458
+val Loss: 1.1362 Sample-Acc: 0.6577
+[2025-04-21 19:18:30] Finished epoch 27
+----------
+[2025-04-21 19:18:30] Epoch 28/50
+train Loss: 1.2040 Sample-Acc: 0.6487
+val Loss: 1.1297 Sample-Acc: 0.6613
+[2025-04-21 19:20:27] Finished epoch 28
+----------
+[2025-04-21 19:20:27] Epoch 29/50
+train Loss: 1.2075 Sample-Acc: 0.6498
+val Loss: 1.1337 Sample-Acc: 0.6664
+[2025-04-21 19:22:23] Finished epoch 29
+----------
+[2025-04-21 19:22:23] Epoch 30/50
+train Loss: 1.2065 Sample-Acc: 0.6481
+val Loss: 1.1328 Sample-Acc: 0.6618
+[2025-04-21 19:24:19] Finished epoch 30
+----------
+[2025-04-21 19:24:19] Epoch 31/50
+train Loss: 1.2058 Sample-Acc: 0.6486
+val Loss: 1.1294 Sample-Acc: 0.6633
+[2025-04-21 19:26:16] Finished epoch 31
+----------
+[2025-04-21 19:26:16] Epoch 32/50
+train Loss: 1.2047 Sample-Acc: 0.6487
+val Loss: 1.1308 Sample-Acc: 0.6616
+[2025-04-21 19:28:13] Finished epoch 32
+----------
+[2025-04-21 19:28:13] Epoch 33/50
+train Loss: 1.2038 Sample-Acc: 0.6490
+val Loss: 1.1322 Sample-Acc: 0.6597
+[2025-04-21 19:30:10] Finished epoch 33
+----------
+[2025-04-21 19:30:10] Epoch 34/50
+train Loss: 1.2038 Sample-Acc: 0.6513
+val Loss: 1.1262 Sample-Acc: 0.6634
+[2025-04-21 19:32:07] Finished epoch 34
+----------
+[2025-04-21 19:32:07] Epoch 35/50
+train Loss: 1.2025 Sample-Acc: 0.6493
+val Loss: 1.1245 Sample-Acc: 0.6681
+[2025-04-21 19:34:03] Finished epoch 35
+----------
+[2025-04-21 19:34:03] Epoch 36/50
+train Loss: 1.2042 Sample-Acc: 0.6497
+val Loss: 1.1257 Sample-Acc: 0.6646
+[2025-04-21 19:36:00] Finished epoch 36
+----------
+[2025-04-21 19:36:00] Epoch 37/50
+train Loss: 1.2024 Sample-Acc: 0.6503
+val Loss: 1.1218 Sample-Acc: 0.6653
+[2025-04-21 19:37:56] Finished epoch 37
+----------
+[2025-04-21 19:37:56] Epoch 38/50
+train Loss: 1.2035 Sample-Acc: 0.6492
+val Loss: 1.1220 Sample-Acc: 0.6708
+[2025-04-21 19:39:52] Finished epoch 38
+----------
+[2025-04-21 19:39:52] Epoch 39/50
+train Loss: 1.2012 Sample-Acc: 0.6501
+val Loss: 1.1221 Sample-Acc: 0.6656
+[2025-04-21 19:41:49] Finished epoch 39
+----------
+[2025-04-21 19:41:49] Epoch 40/50
+train Loss: 1.1992 Sample-Acc: 0.6502
+val Loss: 1.1222 Sample-Acc: 0.6662
+[2025-04-21 19:43:45] Finished epoch 40
+----------
+[2025-04-21 19:43:45] Epoch 41/50
+train Loss: 1.1978 Sample-Acc: 0.6537
+val Loss: 1.1202 Sample-Acc: 0.6712
+[2025-04-21 19:45:43] Finished epoch 41
+----------
+[2025-04-21 19:45:43] Epoch 42/50
+train Loss: 1.2001 Sample-Acc: 0.6521
+val Loss: 1.1187 Sample-Acc: 0.6691
+[2025-04-21 19:47:40] Finished epoch 42
+----------
+[2025-04-21 19:47:40] Epoch 43/50
+train Loss: 1.1979 Sample-Acc: 0.6514
+val Loss: 1.1231 Sample-Acc: 0.6644
+[2025-04-21 19:49:38] Finished epoch 43
+----------
+[2025-04-21 19:49:38] Epoch 44/50
+train Loss: 1.1972 Sample-Acc: 0.6487
+val Loss: 1.1182 Sample-Acc: 0.6738
+[2025-04-21 19:51:35] Finished epoch 44
+----------
+[2025-04-21 19:51:35] Epoch 45/50
+train Loss: 1.1955 Sample-Acc: 0.6506
+val Loss: 1.1144 Sample-Acc: 0.6759
+[2025-04-21 19:53:28] Finished epoch 45
+----------
+[2025-04-21 19:53:28] Epoch 46/50
+train Loss: 1.1961 Sample-Acc: 0.6522
+val Loss: 1.1169 Sample-Acc: 0.6667
+[2025-04-21 19:55:18] Finished epoch 46
+----------
+[2025-04-21 19:55:18] Epoch 47/50
+train Loss: 1.1968 Sample-Acc: 0.6517
+val Loss: 1.1192 Sample-Acc: 0.6708
+[2025-04-21 19:57:10] Finished epoch 47
+----------
+[2025-04-21 19:57:10] Epoch 48/50
+train Loss: 1.1975 Sample-Acc: 0.6497
+val Loss: 1.1119 Sample-Acc: 0.6729
+[2025-04-21 19:59:01] Finished epoch 48
+----------
+[2025-04-21 19:59:01] Epoch 49/50
+train Loss: 1.1912 Sample-Acc: 0.6534
+val Loss: 1.1095 Sample-Acc: 0.6816
+[2025-04-21 20:00:51] Finished epoch 49
+----------
+[2025-04-21 20:00:51] Epoch 50/50
+train Loss: 1.1961 Sample-Acc: 0.6521
+val Loss: 1.1149 Sample-Acc: 0.6776
+[2025-04-21 20:02:42] Finished epoch 50
+----------
+Training complete. Best val loss: 1.1095
+Test Sample-Acc: 0.6805
+[20:02:55] SLURM job complete
