@@ -309,6 +309,9 @@ def create_dogs_loader(base_data_dir, batch_size=32, img_size=244, test_split=0.
 
     return train_loader, val_loader, test_loader
 
+def create_food_loader(base_data_dir, batch_size=32, img_size=512, num_used=3030, seed=42):
+    num_classes = 101
+    num_to_keep = int((num_used/num_classes))
 
 
 def create_food_loader(base_data_dir, batch_size=32, img_size=512, num_used=3030):
